@@ -1,15 +1,19 @@
+const { connect }=require ("mongoose");
 const dotenv = require("dotenv").config();
-const app = require("./app");
-const connectDB = require("./config/dbs");
+if (dotenv.error) {
+  throw new Error("Failed to load .env file");
+}
+const mongo_password = process.env.MONGO_PASSWORD;
+const mongo_url = process.env.MONGO_URL.replace("<password>", mongo_password);
 
-const port = process.env.PORT || 5017;
-console.log(port)
+const connectDB = async () => {
+  connect(mongo_url)
+    .then(() => {
+      console.log("Database connected successfully!!");
+    })
+    .catch((error) => {
+      console.log("An error occurred while connecting to the database", error);
+    });
+};
 
-connectDB()
-
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
-  
-
-// change the || to your port number
+module.exports = connectDB;

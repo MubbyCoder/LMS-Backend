@@ -50,5 +50,5 @@ app.all("*", (req, res) => {
 // Calling our error handler
 app.use(errorHandler);
 
-exports.app;
+module.exports = app;
 // export { cloudinaryConfig, uploader };
