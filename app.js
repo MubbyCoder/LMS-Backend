@@ -10,6 +10,7 @@ const BookRoutes = require ("./routes/books.js");
 const reservationRoutes = require ("./routes/reservation.js");
 const errorHandler = require ("./middleware/error.js");
 const { cloudinaryConfig, uploader } = require ("./utils/cloudinary.js");
+
 const app = express();
 
 app.use(json());
@@ -17,6 +18,7 @@ app.use(urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(cors("*"));
 app.use("*", cloudinaryConfig);
+
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "success",
@@ -48,7 +50,9 @@ app.all("*", (req, res) => {
 });
 
 // Calling our error handler
-app.use(errorHandler);
+app.use(errorHandler)
 
-module.exports = app;
+app.listen(process.env.PORT, () => {
+  console.log(`Server is running on port ${process.env.PORT}`)
+})
 // export { cloudinaryConfig, uploader };
