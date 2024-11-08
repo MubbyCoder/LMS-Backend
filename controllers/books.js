@@ -3,6 +3,8 @@ const AppError = require("../utils/error");
 const books = require("./../models/books");
 const { dataUri } = require("./../utils/multer");
 const { uploader } = require("./../utils/cloudinary");
+
+
 const getAllBooks = async (req, res) => {
   try {
     const Books = await Books.find().populate("user");
@@ -72,7 +74,6 @@ const getBookDetails = async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(error);
   }
 };
 

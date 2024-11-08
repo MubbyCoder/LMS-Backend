@@ -1,18 +1,18 @@
-const { object:_object, string } = require ("joi");
+const joi  = require ("joi");
 
 const validateUserSignup = (object) => {
-  const schema = _object().keys({
-    firstname: string()
+  const schema = joi.object().keys({
+    firstname: joi.string()
       .required()
       .error(new Error("Please provide firstname")),
-    lastname: string()
+    lastname: joi.string()
       .required()
       .error(new Error("Please provide lastname")),
-    email: string()
+    email: joi.string()
       .email({ tlds: { allow: false } })
       .required()
       .error(new Error("Please provide a valid email address")),
-    password: string()
+    password: joi.string()
       .min(8)
       .required()
       .error(

@@ -2,6 +2,8 @@ const express = require ("express");
 const {json, urlencoded} = require("express");
 const morgan = require ("morgan");
 const cors= require ("cors");
+const dotenv = require("dotenv").config();
+const server = require ("./server.js");
 const BorrowedBooksRoutes = require ("./routes/BorrowedBooks.js");
 const reviewsRoutes = require ("./routes/reviews.js");
 const userRoutes = require ("./routes/user.js");
@@ -17,7 +19,7 @@ app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(cors("*"));
-app.use("*", cloudinaryConfig);
+// app.use("*", cloudinaryConfig);
 
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -51,6 +53,8 @@ app.all("*", (req, res) => {
 
 // Calling our error handler
 app.use(errorHandler)
+
+console.log(process.env.PORT)
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`)

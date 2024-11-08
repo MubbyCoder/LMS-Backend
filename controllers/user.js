@@ -59,7 +59,7 @@ const updateProfilePicture = async (req, res, next) => {
     const file = req.file;
     const imageData = dataUri(req).content;
     const result = await uploader.upload(imageData, {
-      folder: "SqiCommerce/profile_images",
+      folder: "LMS/profile_images",
     });
     user.profile_image = result.secure_url;
     await user.save();

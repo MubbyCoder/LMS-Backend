@@ -1,9 +1,5 @@
 const mongoose = require ("mongoose");
-const dotenv = require("dotenv").config();
 
-if (dotenv.error) {
-  throw new Error("Failed to load .env file");
-}
 // const mongo_password = process.env.MONGO_PASSWORD;
 const mongo_url = process.env.MONGO_URL
 console.log(mongo_url)

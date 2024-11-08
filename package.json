@@ -2,11 +2,11 @@
   "name": "lms-backend",
   "version": "1.0.0",
   "description": "my library management system backend program",
-  "main": "server.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server",
-    "prod": "cross-env NODE_ENV=production nodemon server.js"
+    "dev": "nodemon app",
+    "prod": "cross-env NODE_ENV=production nodemon app.js"
   },
   "author": "kazeem mubaraq",
   "license": "ISC",

@@ -26,7 +26,6 @@ const signup = async (req, res, next) => {
     // Hashing the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    console.log(hashedPassword);
 
     // Create User account
     const user = await Users.create({
@@ -40,42 +39,35 @@ const signup = async (req, res, next) => {
       throw new Error("Failed to create user account");
     }
 
-    // Send welcome mail
-    const options = {
-      email: email,
-      subject: "",
-      message:
-        "Welcome Onboard. We are pleased to have you. Please keep your eyes peeled for the verification link which you will recieve soon.\n Enjoy your reading.",
-    };
-    await sendEmail(options);
-
-    //------- Send email verification link--------
     // Create verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
-
-    console.log(verificationToken);
-    // Hash the verification token
     const hashedVerificationToken = await bcrypt.hash(verificationToken, salt);
 
-    // Create verification url
+    // Create verification URL
     const verificationUrl = `${req.protocol}://${req.get(
       "host"
     )}/api/v1/auth/verify/${user.email}/${verificationToken}`;
 
-    // Create verification message
-    const verificationMessage = `Please click on the link below to verify your email address. \n ${verificationUrl} `;
+    // Combined welcome and verification message
+    const emailMessage = `
+       Welcome to our platform, ${firstname} ${lastname}!
 
-    // Verification mail options
-    const verificationMailOptions = {
+      We're excited to have you onboard. Please verify your email to complete your registration.
+
+      Click the link below to verify your email:
+      ${verificationUrl}
+
+      If you did not create an account, please disregard this email, Thanks!
+    `;
+ 
+    // Send combined welcome and verification email
+    await sendEmail({
       email: email,
-      subject: "Verify your email address",
-      message: verificationMessage,
-    };   
+      subject: "Welcome! Verify Your Email",
+      message: emailMessage,
+    });
 
-    // Send verification mail
-    await sendEmail(verificationMailOptions);
-
-    // Update user record with hashed verification token
+    // Save the hashed verification token in the user's record
     user.verification_token = hashedVerificationToken;
     await user.save();
 
@@ -89,15 +81,13 @@ const signup = async (req, res, next) => {
         token,
       },
     });
-
-    // Create User account
   } catch (error) {
     console.log(error);
     res.status(404).json({
       status: "fail",
       message: error.message,
     });
-  } next()
+  }
 };
 
 const login = async (req, res, next) => {
@@ -157,7 +147,7 @@ const verifyEmailAddress = async (req, res, next) => {
     );
 
     if (!tokenValid) {
-      throw new Error("failed to verify user - Invalid tokne");
+      throw new Error("failed to verify user - Invalid token");
     }
 
     user.email_verified = true;
