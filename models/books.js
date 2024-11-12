@@ -14,14 +14,9 @@ const bookSchema = new mongoose.Schema({
         trim:true,
         unique:true,
     },
-    genre:{
-        type:String,
-        required:[true, "Please provide a genre"],
-        trim:true,
-    },
-    category:{
-        type:String,
-        required:[true, "Please provide a category"],
+    copy:{
+        type:Number,
+        required:[true, "Please provide number of copies"],
         trim:true,
     },
     image:{

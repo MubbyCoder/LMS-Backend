@@ -9,8 +9,11 @@ router.route("/verify/:email/:verificationToken")
   .get(authController.verifyEmailAddress);
 
 router.route("/forgot-password").post(authController.forgotPassword);
+router.route("/verifyCode").post(authController.verifyCode); 
+
 router
   .route("/resetPassword/:email/:resetToken")
   .patch(authController.resetPassword);
 
 module.exports = router;
+  

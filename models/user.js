@@ -5,18 +5,18 @@ const UserSchema = new mongoose.Schema({
     firstname: {
         type: String,
         required: [true, 'Please add a firstname'],
-        trim: [true]
+        trim: true
     },
     lastname: {
         type: String,
         required: [true, 'Please add a lastname'],
-        trim: [true]
+        trim: true
     },
     email: {
         type: String,
         required: [true, 'Please add an email'],
         unique: true,
-        trim: [true]
+        trim: true
     },
     password: {
         type: String,
@@ -24,7 +24,6 @@ const UserSchema = new mongoose.Schema({
         minlength: [8, "Password must be at least 8 characters long"],
         select: false,
     },
-
     role: {
         type: String,
         enum: ['admin', 'user'],
@@ -49,14 +48,24 @@ const UserSchema = new mongoose.Schema({
     },
     reset_password_token: {
         type: String,
+    },
+    // New fields for password reset verification code and expiry
+    password_reset_verification_code: {
+        type: String,
+        select: false,  // Don't include this in standard query results for security
+    },
+    password_reset_code_expires: {
+        type: Date,
+        select: false,  // Don't include this in standard query results for security
     }
 });
 
-UserSchema.methods.getFullName = function () { return `${this.firstName} ${this.lastName}`; };
+UserSchema.methods.getFullName = function () { return `${this.firstname} ${this.lastname}`; };
 
 UserSchema.methods.comparePassword = async function (password, hashedPassword) {
     return await bcrypt.compare(password, hashedPassword);
 };
+
 const Users = mongoose.model("Users", UserSchema);
 
 module.exports = Users;

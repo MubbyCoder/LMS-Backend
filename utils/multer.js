@@ -1,6 +1,9 @@
 const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({storage})
 const path = require("path");
 const DataUri = require("datauri/parser");
+
 // const storage = multer.diskStorage({
 //   destination: function (req, file, cb) {
 //     cb(null, "uploads/");
@@ -16,7 +19,7 @@ const DataUri = require("datauri/parser");
 //   },
 // });
 
-const storage = multer.memoryStorage();
+
 
 const imageUploads = multer({
   storage: storage,
@@ -36,9 +39,10 @@ const imageUploads = multer({
   },
 }).single("image");
 
-const dUri = new DataUri();
-
-const dataUri = (req) =>
-  dUri.format(path.extname(req.file.originalname).toString(), req.file.buffer);
+const dataUri = (req) => {
+  const file = req.file;
+  const fileUri = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+  return { content: fileUri };
+};
 
 module.exports = { dataUri, imageUploads };
