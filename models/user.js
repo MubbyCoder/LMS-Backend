@@ -52,11 +52,11 @@ const UserSchema = new mongoose.Schema({
     // New fields for password reset verification code and expiry
     password_reset_verification_code: {
         type: String,
-        select: false,  // Don't include this in standard query results for security
+          // Don't include this in standard query results for security
     },
     password_reset_code_expires: {
         type: Date,
-        select: false,  // Don't include this in standard query results for security
+        // select: false,  // Don't include this in standard query results for security
     }
 });
 

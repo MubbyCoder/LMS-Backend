@@ -48,7 +48,7 @@ const createNewBook = async (req, res, next) => {
       title,
       author,
       description,
-      user: req.user._id, // Make sure the user is authenticated
+      user: req.user._id, 
       image: result.secure_url, // Use Cloudinary URL for the image
       copy,
       category,

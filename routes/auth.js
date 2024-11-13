@@ -12,7 +12,7 @@ router.route("/forgot-password").post(authController.forgotPassword);
 router.route("/verifyCode").post(authController.verifyCode); 
 
 router
-  .route("/resetPassword/:email/:resetToken")
+  .route("/resetPassword/")
   .patch(authController.resetPassword);
 
 module.exports = router;

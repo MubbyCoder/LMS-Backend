@@ -263,6 +263,8 @@ const verifyCode = async (req, res, next) => {
       user.password_reset_verification_code === verificationCode && 
       user.password_reset_code_expires > Date.now();
 
+    console.log("Is the verification code valid?", isCodeValid);
+
     // If the code is invalid or expired
     if (!isCodeValid) {
       console.log("Code validation failed");
@@ -283,6 +285,7 @@ const verifyCode = async (req, res, next) => {
     });
   }
 };
+
 
 
 
