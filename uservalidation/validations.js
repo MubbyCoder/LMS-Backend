@@ -18,10 +18,27 @@ const validateUserSignup = (object) => {
       .error(
         () => new Error("Please provide a password not less than 8 characters")
       ),
+      role: joi.string().valid("user", "admin").optional(),
+  });
+  return schema.validate(object);
+};
+const validateUserLogin = (object) => {
+  const schema = joi.object().keys({
+    email: joi
+      .string()
+      .email({ tlds: { allow: false } })
+      .required()
+      .error(new Error("Please provide a valid email address")),
+    password: joi
+      .string()
+      .min(8)
+      .required()
+      .error(() => new Error("Please provide a password not less than 8 characters")),
   });
   return schema.validate(object);
 };
 
 module.exports ={
   validateUserSignup,
+  validateUserLogin
 };

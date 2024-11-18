@@ -1,22 +1,13 @@
-// const users = require("./../data/user");
-const { genSalt, hash } = require("bcryptjs");
-const { find, findById } =require ("../models/user");
-const AppError = require  ("../utils/error");
-const { dataUri } = require ("../utils/multer");
-const { uploader } =require  ("../utils/cloudinary");
+const Users = require("../models/user");
+const bcrypt = require("bcryptjs");
+const AppError = require("../utils/error");
 
-const getAllUsers = async (req, res, next) => {
+// Get all users
+exports.getAllUsers = async (req, res, next) => {
   try {
-    const users = await find();
-
-    // if (!users) {
-    //   throw new AppError("No users found", 404);
-    // }
-
+    const users = await Users.find();
     res.status(200).json({
       status: "success",
-      message: "All users fetched successfully",
-      result: users.length,
       data: {
         users,
       },
@@ -26,47 +17,15 @@ const getAllUsers = async (req, res, next) => {
   }
 };
 
-//
-const getUserProfile = async (req, res, next) => {
-  const userId = req.user._id;
+// Get logged-in user's profile
+exports.getUserProfile = async (req, res, next) => {
   try {
-    const user = await findById(userId);
+    const user = await Users.findById(req.user._id);
     if (!user) {
-      throw new AppError(`User not found with id of ${id}`, 404);
+      throw new AppError("User not found", 404);
     }
-    const fullname = user.getFullName();
-
     res.status(200).json({
       status: "success",
-      message: "User fetched successfully",
-      data: {
-        user,
-        fullname,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateProfilePicture = async (req, res, next) => {
-  try {
-    const userId = req.user._id;
-    const user = await findById(userId);
-    if (!user) {
-      throw new AppError(`User not found with id of ${id}`, 404);
-    }
-    const file = req.file;
-    const imageData = dataUri(req).content;
-    const result = await uploader.upload(imageData, {
-      folder: "LMS/profile_images",
-    });
-    user.profile_image = result.secure_url;
-    await user.save();
-
-    res.status(200).json({
-      status: "success",
-      message: "Profile picture updated successfully",
       data: {
         user,
       },
@@ -76,95 +35,70 @@ const updateProfilePicture = async (req, res, next) => {
   }
 };
 
-const updateProfile = async (req, res, next) => {
+// Update logged-in user's profile
+exports.updateProfile = async (req, res, next) => {
   try {
-    const userId = req.user._id;
-    const user = await findById(userId);
-    if (!user) {
-      throw new AppError(`User not found with id of ${id}`, 404);
-    }
-    const allowedFields = ["firstname", "lastname", "bio"];
-    const fieldsToUpdate = Object.keys(req.body);
-    fieldsToUpdate.forEach((field) => {
-      if (allowedFields.includes(field)) {
-        user[field] = req.body[field];
-      } else {
-        throw new AppError(
-          `Field ${field} is not allowed to be updated using this route`,
-          400
-        );
-      }
-    });
-    await user.save();
-    res.status(200).json({
-      status: "success",
-      message: "Profile updated successfully",
-      data: {
-        user,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updatePassword = async (req, res, next) => {
-  try {
-    const userId = req.user._id;
-    const user = await findById(userId).select("+password");
-    if (!user) {
-      throw new AppError(`User not found with id of ${id}`, 404);
-    }
-    const { oldPassword, newPassword, confirmNewPassword } = req.body;
-    if (!oldPassword || !newPassword || !confirmNewPassword) {
-      throw new AppError(
-        "Please provide both old and new and confirm password",
-        400
-      );
-    }
-    const isPasswordValid = await user.comparePassword(
-      oldPassword,
-      user.password
+    const updatedUser = await Users.findByIdAndUpdate(
+      req.user._id,
+      { ...req.body },
+      { new: true, runValidators: true }
     );
-    if (!isPasswordValid) {
-      throw new AppError("Old password is incorrect", 400);
+    res.status(200).json({
+      status: "success",
+      data: {
+        user: updatedUser,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update profile picture
+exports.updateProfilePicture = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      throw new AppError("Please provide a profile picture", 400);
+    }
+    const user = await Users.findByIdAndUpdate(
+      req.user._id,
+      { profilePicture: req.file.path }, // Assuming `profilePicture` field in the schema
+      { new: true }
+    );
+    res.status(200).json({
+      status: "success",
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update password
+exports.updatePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      throw new AppError("Please provide current and new password", 400);
     }
 
-    if (oldPassword === newPassword) {
-      throw new AppError(
-        "New password cannot be the same as old password",
-        400
-      );
+    const user = await Users.findById(req.user._id).select("+password");
+
+    if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+      throw new AppError("Current password is incorrect", 401);
     }
 
-    if (newPassword !== confirmNewPassword) {
-      throw new AppError(
-        "New password and confirm new password do not match",
-        400
-      );
-    }
-    const salt = await genSalt(12);
-    const hashedPassword = await hash(newPassword, salt);
-
-    user.password = hashedPassword;
-    console.log();
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
+
     res.status(200).json({
       status: "success",
       message: "Password updated successfully",
-      data: {
-        user,
-      },
     });
   } catch (error) {
     next(error);
   }
-};
-
-module.exports = {
-  getAllUsers,
-  getUserProfile,
-  updateProfilePicture,
-  updateProfile,
-  updatePassword,
 };

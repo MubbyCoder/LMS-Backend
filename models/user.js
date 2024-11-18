@@ -29,9 +29,9 @@ const UserSchema = new mongoose.Schema({
         enum: ['admin', 'user'],
         default: 'user'
     },
-    currently_reading_a_book: {
-        type: Boolean,
-    },
+    // currently_reading_a_book: {
+    //     type: Boolean,
+    // },
     createdAt: {
         type: Date,
         default: Date.now

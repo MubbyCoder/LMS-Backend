@@ -1,6 +1,8 @@
+// middleware/auth.js
+
 const Users = require("../models/user");
 const jwt = require("jsonwebtoken");
-const AppError = require("./../utils/error");
+const AppError = require("../utils/error");
 
 const protectRoute = async (req, res, next) => {
   try {
@@ -37,7 +39,7 @@ const protectRoute = async (req, res, next) => {
   }
 };
 
-const verifyIsAdmin = async (req, res, next) => {
+const verifyIsAdmin = (req, res, next) => {
   try {
     // Check if the logged-in user is an admin
     if (req.user.role !== "admin") {
@@ -48,11 +50,7 @@ const verifyIsAdmin = async (req, res, next) => {
     }
     next(); // Proceed to next middleware or route handler if admin
   } catch (error) {
-    console.log(error);
-    res.status(error.statusCode || 401).json({
-      status: "fail",
-      message: error.message,
-    });
+    next(error); // Pass errors to error handler
   }
 };
 

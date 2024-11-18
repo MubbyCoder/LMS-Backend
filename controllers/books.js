@@ -111,7 +111,7 @@ const updateBookDetails = async (req, res, next) => {
       data: { book: updatedBook },
     });
   } catch (error) {
-    console.error("Error in updateBookDetails:", error);
+    // console.error("Error in updateBookDetails:", error);
     next(error);
   }
 };
@@ -148,7 +148,6 @@ const getAllBooksByAdmin = async (req, res, next) => {
       data: { books },
     });
   } catch (error) {
-    console.error("Error in getAllBooksByAdmin:", error);
     next(error);
   }
 };

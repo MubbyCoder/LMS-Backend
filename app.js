@@ -40,9 +40,9 @@ app.get("/api/v1", (req, res) => {
 app.use("/api/v1/BorrowedBooks", BorrowedBooksRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/reviews", reviewsRoutes);
+// app.use("/api/v1/reviews", reviewsRoutes);
 app.use("/api/v1/books", BookRoutes);
-app.use("/api/v1/reservation", reservationRoutes);
+// app.use("/api/v1/reservation", reservationRoutes);
 
 app.all("*", (req, res) => {
   res.status(404).json({

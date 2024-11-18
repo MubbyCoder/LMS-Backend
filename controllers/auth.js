@@ -6,37 +6,50 @@ const sendEmail = require("../utils/email");
 const crypto = require("crypto");
 const AppError = require("../utils/error");
 const { validateUserSignup } = require("../uservalidation/validations");
+const {validateUserLogin} = require("../uservalidation/validations");
 
 const signup = async (req, res, next) => {
   try {
     console.log(req.body);
+
+    // Validate the incoming request
     const validation = validateUserSignup(req.body);
     if (validation?.error) {
       throw new AppError(validation?.error.message, 400);
     }
 
-    const { firstname, lastname, email, password } = req.body;
+    const { firstname, lastname, email, password, role } = req.body;
 
     // Check if the user with the email already exists
     const existingUser = await Users.findOne({ email });
     if (existingUser) {
-      throw new Error("User with the email address already exists");
+      throw new AppError("User with the email address already exists", 400);
     }
 
-    // Hashing the password
-    const salt = await bcrypt.genSalt(10);
+    // Determine role and validate admin credentials if needed
+    let finalRole = "user"; // Default role
+    if (role === "admin") {
+      if (password !== process.env.ADMIN_SIGNUP_PASSWORD) {
+        throw new AppError("Invalid admin password", 401);
+      }
+      finalRole = "admin"; // Set role to admin if password matches
+    }
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10); // Ensure salt is properly defined here
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create User account
+    // Create the new user
     const user = await Users.create({
       firstname,
       lastname,
       email,
       password: hashedPassword,
+      role: finalRole, // Role is dynamically set
     });
 
     if (!user) {
-      throw new Error("Failed to create user account");
+      throw new AppError("Failed to create user account", 500);
     }
 
     // Create verification token
@@ -93,24 +106,32 @@ const signup = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
+    const validation = validateUserLogin(req.body);
+    if (validation.error) {
+      throw new AppError(validation.error.message, 400);
+    }
+
     const { email, password } = req.body;
-    if (!email || !password) {
-      throw new Error("Please provide email and password");
-    }
 
-    // Check if the user account exists
+    // Find the user with the provided email and include the password field
     const user = await Users.findOne({ email }).select("+password");
-    console.log(user);
-
-    // Check if the password is correct
-
-    if (!user || !(await user.comparePassword(password, user.password))) {
-      throw new Error("Invalid email or password");
+    if (!user) {
+      throw new AppError("Invalid email or password", 401);
     }
 
-    // Create auth token
-    const token = signJWt(user._id);
-    // send response
+    // Compare provided password with the stored hashed password
+    const isPasswordValid = await user.comparePassword(password, user.password);
+    if (!isPasswordValid) {
+      throw new AppError("Invalid email or password", 401);
+    }
+
+    // Generate a JWT token
+    const token = signJWT(user._id);
+
+    // Remove the password from the user object before sending the response
+    user.password = undefined;
+
+    // Send the response
     res.status(200).json({
       status: "success",
       message: "User logged in successfully",
@@ -120,11 +141,7 @@ const login = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.log(error);
-    res.status(404).json({
-      status: "fail",
-      message: error.message,
-    });
+    next(error); 
   }
 };
 
