@@ -126,7 +126,7 @@ const login = async (req, res, next) => {
     }
 
     // Generate a JWT token
-    const token = signJWT(user._id);
+    const token = signJWt(user._id);
 
     // Remove the password from the user object before sending the response
     user.password = undefined;

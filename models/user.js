@@ -43,6 +43,7 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    banUntil: { type: Date, default: null }, 
     verification_token: {
         type: String,
     },
@@ -64,6 +65,9 @@ UserSchema.methods.getFullName = function () { return `${this.firstname} ${this.
 
 UserSchema.methods.comparePassword = async function (password, hashedPassword) {
     return await bcrypt.compare(password, hashedPassword);
+};
+UserSchema.methods.isBanned = function () {
+    return this.banUntil && this.banUntil > new Date();
 };
 
 const Users = mongoose.model("Users", UserSchema);

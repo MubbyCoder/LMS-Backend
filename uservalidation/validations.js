@@ -13,10 +13,10 @@ const validateUserSignup = (object) => {
       .required()
       .error(new Error("Please provide a valid email address")),
     password: joi.string()
-      .min(8)
+      .min(6)
       .required()
       .error(
-        () => new Error("Please provide a password not less than 8 characters")
+        () => new Error("Please provide a password not less than 6 characters")
       ),
       role: joi.string().valid("user", "admin").optional(),
   });
@@ -31,9 +31,9 @@ const validateUserLogin = (object) => {
       .error(new Error("Please provide a valid email address")),
     password: joi
       .string()
-      .min(8)
+      .min(6)
       .required()
-      .error(() => new Error("Please provide a password not less than 8 characters")),
+      .error(() => new Error("Please provide a password not less than 6 characters")),
   });
   return schema.validate(object);
 };

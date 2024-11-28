@@ -1,13 +1,24 @@
 const express = require("express");
-const { borrowBook, getBorrowedBooks } = require("../controllers/borrowedBooks");
-const { protectRoute } = require("../middleware/auth");
+const {
+  borrowBook,
+  returnBorrowedbook,
+  getBorrowedBooks,
+  getOverdueBooks,
+} = require("../controllers/borrowedBooks");
+const { protect, protectRoute } = require("../middleware/auth"); 
 
 const router = express.Router();
 
-// Borrow a book
-router.post("/borrow/:bookId", protectRoute, borrowBook);
 
-// Get borrowed books for a user
-router.get("/", protectRoute, getBorrowedBooks);
+router.route("/:id/borrow").post(protectRoute, borrowBook);
 
-module.exports =router;
+
+router.route("/:id/return").post(protectRoute, returnBorrowedbook);
+
+
+router.route("/borrowed").get(protectRoute, getBorrowedBooks);
+
+
+router.route("/overdue").get(protectRoute, getOverdueBooks);
+
+module.exports = router;

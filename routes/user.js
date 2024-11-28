@@ -5,27 +5,26 @@ const { imageUploads } = require("./../utils/multer");
 
 const router = express.Router();
 
-// Route to get all users
+
 router.route("/").get(userController.getAllUsers);
 
-// Route to get and update user profile
+
 router
   .route("/profile")
-  .get(authMiddleware.protectRoute, userController.getUserProfile) // Ensure getUserProfile is defined
-  .patch(authMiddleware.protectRoute, userController.updateProfile); // Ensure updateProfile is defined
+  .get(authMiddleware.protectRoute, userController.getUserProfile)  
+  .patch(authMiddleware.protectRoute, userController.updateProfile);  
 
-// Route to update profile picture
+
 router
   .route("/update-profile-picture")
   .patch(
     authMiddleware.protectRoute,
-    imageUploads, // Middleware for image upload
-    userController.updateProfilePicture // Ensure updateProfilePicture is defined
+    imageUploads, 
+    userController.updateProfilePicture
   );
 
-// Route to update password
 router
   .route("/update-password")
-  .patch(authMiddleware.protectRoute, userController.updatePassword); // Ensure updatePassword is defined
+  .patch(authMiddleware.protectRoute, userController.updatePassword); 
 
 module.exports = router;
