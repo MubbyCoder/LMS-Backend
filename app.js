@@ -19,7 +19,14 @@ const app = express();
 app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(morgan("dev"));
-app.use(cors({origin:"https://lms-users.netlify.app/"}));
+// Configure CORS to allow your frontend URL
+const corsOptions = {
+  origin: 'https://lms-users.netlify.app', // Specify the frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+};
+
+app.use(cors(corsOptions));
 // app.use("*", cloudinaryConfig);
 
 app.get("/", (req, res) => {
