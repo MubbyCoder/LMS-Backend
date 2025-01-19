@@ -1,15 +1,25 @@
-// const express = require('express');
-// const router = express.Router();
-// const reviewController = require('../controllers/reviews');
-// const authMiddleware = require('../middleware/auth');
+const express = require("express");
+const {
+    createReview,
+    getReviews,
+    getAllReviews,
+    deleteReview,
+  } = require("../controllers/reviews");
+  const { protectRoute, verifyIsAdmin } = require("../middleware/auth");
+  
+  const router = express.Router();
+  
+  // Add a review to a book
+  router.post("/:bookId", protectRoute, createReview);
+  
+  // Get review for a book
+  // router.get("/:bookId", getReviews);
 
-// // Create a review for a book
-// router.post('/:bookId', authMiddleware.protectRoute, reviewController.createReview);
+   // Get all reviews for a book
+  router.get("/all", getAllReviews)
 
-// // Get all reviews for a book
-// router.get('/:bookId', reviewController.getReviews);
-
-// // Delete a review
-// router.delete('/:id', authMiddleware.protectRoute, reviewController.deleteReview);
-
-// module.exports = router;
+  // Delete a review
+  router.delete("/:id", protectRoute, verifyIsAdmin, deleteReview);
+  
+  module.exports = router;
+  

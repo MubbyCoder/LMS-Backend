@@ -2,10 +2,24 @@ const Users = require("../models/user");
 const bcrypt = require("bcryptjs");
 const AppError = require("../utils/error");
 
-// Get all users
+// Helper function to ensure only admins can perform certain actions
+// const ensureAdmin = (req) => {
+//   if (req.user.role !== "admin") {
+//     throw new AppError("You do not have permission to perform this action", 403);
+//   }
+// };
+
+// Admin: Get all users
 exports.getAllUsers = async (req, res, next) => {
   try {
-    const users = await Users.find();
+    // Check if the user is an admin
+    if (req.user.role !== "admin") {
+      return next(new AppError("Access denied. Admins only.", 403));
+    }
+
+    // Fetch all users except those with role "admin"
+    const users = await Users.find({ role: { $ne: "admin" } });
+
     res.status(200).json({
       status: "success",
       data: {
@@ -17,86 +31,50 @@ exports.getAllUsers = async (req, res, next) => {
   }
 };
 
-// Get logged-in user's profile
-exports.getUserProfile = async (req, res, next) => {
+
+
+// Admin: Delete a user
+exports.deleteUser = async (req, res, next) => {
   try {
-    const user = await Users.findById(req.user._id);
+    if (req.user.role !== "admin") {
+      return next(new AppError("Access denied. Admins only.", 403));
+    }
+    const { id } = req.params;
+    const user = await Users.findByIdAndDelete(id);
+
     if (!user) {
       throw new AppError("User not found", 404);
     }
+
     res.status(200).json({
       status: "success",
-      data: {
-        user,
-      },
+      message: "User deleted successfully",
     });
   } catch (error) {
     next(error);
   }
 };
 
-// Update logged-in user's profile
-exports.updateProfile = async (req, res, next) => {
+// Edit any user's profile (Admin only)
+exports.editUserProfile = async (req, res, next) => {
   try {
+    ensureAdmin(req);
+
+    const { id } = req.params;
     const updatedUser = await Users.findByIdAndUpdate(
-      req.user._id,
+      id,
       { ...req.body },
       { new: true, runValidators: true }
     );
-    res.status(200).json({
-      status: "success",
-      data: {
-        user: updatedUser,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
-// Update profile picture
-exports.updateProfilePicture = async (req, res, next) => {
-  try {
-    if (!req.file) {
-      throw new AppError("Please provide a profile picture", 400);
+    if (!updatedUser) {
+      throw new AppError("User not found", 404);
     }
-    const user = await Users.findByIdAndUpdate(
-      req.user._id,
-      { profilePicture: req.file.path }, // Assuming `profilePicture` field in the schema
-      { new: true }
-    );
-    res.status(200).json({
-      status: "success",
-      data: {
-        user,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// Update password
-exports.updatePassword = async (req, res, next) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-      throw new AppError("Please provide current and new password", 400);
-    }
-
-    const user = await Users.findById(req.user._id).select("+password");
-
-    if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
-      throw new AppError("Current password is incorrect", 401);
-    }
-
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
 
     res.status(200).json({
       status: "success",
-      message: "Password updated successfully",
+      message: "Profile updated successfully",
+      data: { user: updatedUser },
     });
   } catch (error) {
     next(error);

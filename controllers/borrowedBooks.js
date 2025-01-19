@@ -72,32 +72,40 @@ const returnBorrowedbook = async (req, res, next) => {
       return res.status(400).json({ status: "fail", message: "Invalid book ID format." });
     }
 
-    console.log("ID:", id, "User ID:", userId);
+    // Find the borrowed book
+    const borrowedBook = await BorrowedBook.findOne({
+      _id: id,
+      user: userId,
+      status: "borrowed",
+    });
 
-    // Relaxed query for debugging
-    const borrowedBook = await BorrowedBook.findOne({ _id: id, user: userId });
-
-    if (!borrowedBook || borrowedBook.status !== "borrowed") {
-      console.error("BorrowedBook not found with query:", { _id: id, user: userId, status: "borrowed" });
+    if (!borrowedBook) {
       return res.status(404).json({
         status: "fail",
-        message: "No matching borrowed record found. Ensure the book is borrowed and belongs to this user.",
+        message: "Borrowed book record not found for this user or is already returned.",
       });
     }
 
+    // Update the status to returned
     borrowedBook.status = "returned";
-    const isLate = new Date() > borrowedBook.returnDate;
 
+    // Check if the return is late
+    const isLate = new Date() > borrowedBook.returnDate;
     if (isLate) {
       borrowedBook.returnedLate = true;
 
+      // Apply penalty to the user
       const user = await Users.findById(userId);
-      user.banUntil = new Date(Date.now() + BORROW_BAN_DAYS * 24 * 60 * 60 * 1000);
-      await user.save();
+      if (user) {
+        const BORROW_BAN_DAYS = 3; // Replace with your actual ban duration
+        user.banUntil = new Date(Date.now() + BORROW_BAN_DAYS * 24 * 60 * 60 * 1000);
+        await user.save();
+      }
     }
 
     await borrowedBook.save();
 
+    // Mark the book as available
     const book = await Books.findById(borrowedBook.book);
     if (book) {
       book.isAvailable = true;
@@ -106,7 +114,7 @@ const returnBorrowedbook = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      message: `Book successfully returned.${isLate ? " Note: You are banned from borrowing for 3 days due to late return." : ""}`,
+      message: `Book successfully returned.${isLate ? " Note: Late return penalty applied." : ""}`,
     });
   } catch (error) {
     console.error("Error in returnBorrowedbook:", error);
@@ -118,12 +126,41 @@ const returnBorrowedbook = async (req, res, next) => {
 
 const getBorrowedBooks = async (req, res, next) => {
   try {
-    const userId = req.user._id; // Ensure `protectRoute` populates `req.user`
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        status: "fail",
+        message: "Unauthorized: User not logged in.",
+      });
+    }
+
     const borrowedBooks = await BorrowedBook.find({ user: userId }).populate("book");
 
+    return res.status(200).json({
+      status: "success",
+      data: borrowedBooks || [],
+      message: borrowedBooks.length
+        ? "Borrowed books retrieved successfully."
+        : "No borrowed books found.",
+    });
+  } catch (error) {
+    console.error("Error in getBorrowedBooks", { error, userId: req.user?._id });
+    next(error);
+  }
+};
+
+const getAllBorrowedBooks = async (req, res, next) => {
+  try {
+    // Fetch all borrowed books, populating user and book details
+    const borrowedBooks = await BorrowedBook.find()
+      .populate("book", "title author") // Populating only specific fields from the book
+      .populate("user", "name email"); // Populating specific fields from the user
+
     if (!borrowedBooks || borrowedBooks.length === 0) {
-      return res.status(404).json({
-        status: "fail",
+      return res.status(200).json({
+        status: "success",
+        data: [],
         message: "No borrowed books found.",
       });
     }
@@ -133,10 +170,11 @@ const getBorrowedBooks = async (req, res, next) => {
       data: borrowedBooks,
     });
   } catch (error) {
-    console.log("Error in getBorrowedBooks", error);
+    console.error("Error in getAllBorrowedBooks", error);
     next(error);
   }
 };
+
 
 
 
@@ -162,4 +200,5 @@ module.exports = {
   returnBorrowedbook,
   getBorrowedBooks,
   getOverdueBooks,
+  getAllBorrowedBooks,
 };

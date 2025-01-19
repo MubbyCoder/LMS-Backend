@@ -43,7 +43,7 @@ const createNewBook = async (req, res, next) => {
       throw new AppError("Missing required fields", 400);
     }
 
-    // Create the new book in the database
+    // Create the new book in the database (admin)
     const newBook = await Books.create({
       title,
       author,
@@ -69,26 +69,32 @@ const createNewBook = async (req, res, next) => {
 };
 
 
-// Get book details by ID (public)
-const getBookDetails = async (req, res, next) => {
+// Search for books by title (public)
+const searchBooksByTitle = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const book = await Books.findById(id);
+    const { title } = req.query; // Extract the title from query parameters
 
-    if (!book) {
-      throw new AppError("Book with the specified ID not found", 404);
+    if (!title) {
+      throw new AppError("Title parameter is required for search", 400);
+    }
+
+    const books = await Books.find({ title: new RegExp(title, "i") }); // Case-insensitive search
+
+    if (!books.length) {
+      throw new AppError("No books found with the specified title", 404);
     }
 
     res.status(200).json({
       status: "success",
-      message: "Book fetched successfully",
-      data: { book },
+      message: "Books fetched successfully",
+      data: { books },
     });
   } catch (error) {
-    console.error("Error in getBookDetails:", error);
+    console.error("Error in searchBooksByTitle:", error);
     next(error);
   }
 };
+
 
 // Update book details (admin)
 const updateBookDetails = async (req, res, next) => {
@@ -155,7 +161,7 @@ const getAllBooksByAdmin = async (req, res, next) => {
 module.exports = {
   getAllBooks,
   createNewBook,
-  getBookDetails,
+  searchBooksByTitle,
   updateBookDetails,
   deleteBook,
   getAllBooksByAdmin,

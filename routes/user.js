@@ -1,30 +1,16 @@
 const express = require("express");
-const userController = require("../controllers/user");
-const authMiddleware = require("./../middleware/auth");
-const { imageUploads } = require("./../utils/multer");
+const { getAllUsers, deleteUser, editUserProfile } = require("../controllers/user");
+const { protectRoute } = require("../middleware/auth");
+const { verifyIsAdmin } = require("../middleware/auth");
 
 const router = express.Router();
 
+// All routes require authentication
+router.use(protectRoute);
 
-router.route("/").get(userController.getAllUsers);
-
-
-router
-  .route("/profile")
-  .get(authMiddleware.protectRoute, userController.getUserProfile)  
-  .patch(authMiddleware.protectRoute, userController.updateProfile);  
-
-
-router
-  .route("/update-profile-picture")
-  .patch(
-    authMiddleware.protectRoute,
-    imageUploads, 
-    userController.updateProfilePicture
-  );
-
-router
-  .route("/update-password")
-  .patch(authMiddleware.protectRoute, userController.updatePassword); 
+// Admin-only routes
+router.get("/", verifyIsAdmin, getAllUsers); // Only admins can access
+router.delete("/:id", verifyIsAdmin, deleteUser); // Admin can delete a user
+router.patch("/:id", verifyIsAdmin, editUserProfile); // Admin can edit any user's profile
 
 module.exports = router;

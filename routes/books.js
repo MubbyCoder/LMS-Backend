@@ -5,7 +5,7 @@ const { protectRoute, verifyIsAdmin } = require("../middleware/auth");
 const {
   getAllBooks,
   createNewBook,
-  getBookDetails,
+  searchBooksByTitle,
   updateBookDetails,
   deleteBook,
   getAllBooksByAdmin,
@@ -15,14 +15,14 @@ const router = express.Router();
 
 // Public routes
 router.route("/").get(getAllBooks);
-router.route("/:id").get(getBookDetails);
+router.route("/search").get(searchBooksByTitle);
 
 // Admin-only routes
 router.route("/admin").get(protectRoute, verifyIsAdmin, getAllBooksByAdmin);
 router.route("/")
   .post(protectRoute, verifyIsAdmin, imageUploads, createNewBook); // Restrict create to admins
 router.route("/:id")
-  .put(protectRoute, verifyIsAdmin, updateBookDetails) // Restrict update to admins
+  .patch(protectRoute, verifyIsAdmin, updateBookDetails) // Restrict update to admins
   .delete(protectRoute, verifyIsAdmin, deleteBook); // Restrict delete to admins
 
 module.exports = router;

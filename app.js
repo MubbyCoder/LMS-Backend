@@ -11,6 +11,7 @@ const authRoutes = require ("./routes/auth.js");
 const BookRoutes = require ("./routes/books.js");
 const reservationRoutes = require ("./routes/reservation.js");
 const errorHandler = require ("./middleware/error.js");
+const contactusRoutes = require ("./routes/contactus.js");
 const { cloudinaryConfig, uploader } = require ("./utils/cloudinary.js");
 
 const app = express();
@@ -38,10 +39,11 @@ app.get("/api/v1", (req, res) => {
 
 
 app.use("/api/v1/BorrowedBooks", BorrowedBooksRoutes);
-app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/auth", authRoutes);
-// app.use("/api/v1/reviews", reviewsRoutes);
+app.use("/api/v1/reviews", reviewsRoutes);
 app.use("/api/v1/books", BookRoutes);
+app.use("/api", contactusRoutes);
 // app.use("/api/v1/reservation", reservationRoutes);
 
 app.all("*", (req, res) => {
