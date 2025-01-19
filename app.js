@@ -19,7 +19,7 @@ const app = express();
 app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(morgan("dev"));
-app.use(cors({origin: "https://lms-users.netlify.app/"}));
+app.use(cors({origin:"https://lms-users.netlify.app/"}));
 // app.use("*", cloudinaryConfig);
 
 app.get("/", (req, res) => {
